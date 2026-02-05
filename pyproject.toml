@@ -1,0 +1,20 @@
+[project]
+name = "actions-knowledge-base"
+version = "0.1.0"
+description = "A monorepository of GitHub Actions projects for agent utilization"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "rich>=13.0.0",
+    "ruff>=0.14.10",
+    "ty>=0.0.4",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.ruff]
+exclude = ["repos"]
+
+[tool.ty.src]
+exclude = ["repos/"]

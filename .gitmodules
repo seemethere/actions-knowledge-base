@@ -1,0 +1,66 @@
+[submodule "repos/actions-runner-controller"]
+	path = repos/actions-runner-controller
+	url = https://github.com/actions/actions-runner-controller.git
+[submodule "repos/auth"]
+	path = repos/auth
+	url = https://github.com/google-github-actions/auth.git
+[submodule "repos/cache"]
+	path = repos/cache
+	url = https://github.com/actions/cache.git
+[submodule "repos/checkout"]
+	path = repos/checkout
+	url = https://github.com/actions/checkout.git
+[submodule "repos/configure-aws-credentials"]
+	path = repos/configure-aws-credentials
+	url = https://github.com/aws-actions/configure-aws-credentials.git
+[submodule "repos/create-release"]
+	path = repos/create-release
+	url = https://github.com/actions/create-release.git
+[submodule "repos/docs"]
+	path = repos/docs
+	url = https://github.com/github/docs.git
+[submodule "repos/download-artifact"]
+	path = repos/download-artifact
+	url = https://github.com/actions/download-artifact.git
+[submodule "repos/github-script"]
+	path = repos/github-script
+	url = https://github.com/actions/github-script.git
+[submodule "repos/javascript-action"]
+	path = repos/javascript-action
+	url = https://github.com/actions/javascript-action.git
+[submodule "repos/labeler"]
+	path = repos/labeler
+	url = https://github.com/actions/labeler.git
+[submodule "repos/login"]
+	path = repos/login
+	url = https://github.com/azure/login.git
+[submodule "repos/runner"]
+	path = repos/runner
+	url = https://github.com/actions/runner.git
+[submodule "repos/runner-images"]
+	path = repos/runner-images
+	url = https://github.com/actions/runner-images.git
+[submodule "repos/setup-go"]
+	path = repos/setup-go
+	url = https://github.com/actions/setup-go.git
+[submodule "repos/setup-java"]
+	path = repos/setup-java
+	url = https://github.com/actions/setup-java.git
+[submodule "repos/setup-node"]
+	path = repos/setup-node
+	url = https://github.com/actions/setup-node.git
+[submodule "repos/setup-python"]
+	path = repos/setup-python
+	url = https://github.com/actions/setup-python.git
+[submodule "repos/starter-workflows"]
+	path = repos/starter-workflows
+	url = https://github.com/actions/starter-workflows.git
+[submodule "repos/toolkit"]
+	path = repos/toolkit
+	url = https://github.com/actions/toolkit.git
+[submodule "repos/typescript-action"]
+	path = repos/typescript-action
+	url = https://github.com/actions/typescript-action.git
+[submodule "repos/upload-artifact"]
+	path = repos/upload-artifact
+	url = https://github.com/actions/upload-artifact.git
