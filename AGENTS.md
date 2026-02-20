@@ -41,6 +41,9 @@ actions-knowledge-base/
     ├── configure-aws-credentials/
     ├── login/
     ├── auth/
+    ├── harbor/
+    ├── harbor-helm/
+    ├── harbor-cli/
     └── docs/
 ```
 
@@ -409,6 +412,90 @@ Authenticates with Google Cloud using Workload Identity Federation (OIDC) or ser
 
 ---
 
+### Container Registry
+
+#### `repos/harbor/` - Harbor Container Registry
+**Language:** Go/TypeScript | **Version:** v2.14.2 | **Org:** goharbor
+
+An open-source trusted cloud native registry project (CNCF graduated) that stores, signs, and scans container content. Extends Docker Distribution with security, identity, and management features.
+
+**Key features:**
+- Vulnerability scanning of container images
+- Image signing and validation
+- Role-based access control and multi-tenancy
+- Registry replication across instances
+- RESTful API and web UI
+
+**Key paths:**
+- `src/` - Main source code for Harbor components
+- `api/v2.0/` - RESTful API specifications
+- `make/` - Build configuration and scripts
+- `docs/` - Documentation and guides
+- `tests/` - Test suites and infrastructure
+
+**Installation (Docker Compose):**
+```bash
+# Download the online installer
+wget https://github.com/goharbor/harbor/releases/download/v2.14.2/harbor-online-installer-v2.14.2.tgz
+tar xzvf harbor-online-installer-v2.14.2.tgz
+cd harbor
+cp harbor.yml.tmpl harbor.yml
+# Edit harbor.yml with your hostname, TLS, and storage settings
+./install.sh
+```
+
+---
+
+#### `repos/harbor-helm/` - Harbor Helm Chart
+**Language:** YAML/Mustache | **Version:** v1.18.2 | **Org:** goharbor
+
+Helm chart for deploying Harbor into Kubernetes clusters. Supports ingress, TLS, persistent storage, and multiple storage backends (S3, GCS, Azure, filesystem).
+
+**Key paths:**
+- `templates/` - Helm template files for Kubernetes manifests
+- `values.yaml` - Default configuration values
+- `docs/` - Deployment guides (HA, upgrades)
+
+**Key configuration:**
+- `expose.type` - Service exposure (ingress, clusterIP, nodePort, loadBalancer)
+- `expose.tls.enabled` - TLS configuration (default: true)
+- `persistence.imageChartStorage.type` - Storage backend (filesystem, s3, gcs, azure, swift, oss)
+- `harborAdminPassword` - Initial admin credentials
+- `externalURL` - External access URL
+
+**Installation:**
+```bash
+helm repo add harbor https://helm.goharbor.io
+helm install harbor harbor/harbor \
+  --set expose.type=ingress \
+  --set expose.ingress.hosts.core=core.harbor.domain \
+  --set externalURL=https://core.harbor.domain \
+  --set harborAdminPassword=YourPassword
+```
+
+---
+
+#### `repos/harbor-cli/` - Harbor CLI
+**Language:** Go | **Version:** v0.0.17 | **Org:** goharbor
+
+Official command-line interface for Harbor registries. A streamlined, user-friendly alternative to the web UI for daily operations, scripting, and automation.
+
+**Key paths:**
+- `cmd/harbor/` - Command implementations
+- `pkg/` - Core library packages
+- `doc/` - Documentation
+- `examples/config/` - Sample configuration files
+
+**Installation:**
+```bash
+# macOS
+brew install harbor-cli
+
+# Or download from GitHub releases
+```
+
+---
+
 ### Documentation
 
 #### `repos/docs/` - GitHub Documentation
@@ -487,3 +574,7 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Configure GCP OIDC | `auth` | `src/` |
 | Learn workflow syntax | `docs` | `content/actions/writing-workflows/` |
 | Understand contexts | `docs` | `content/actions/writing-workflows/choosing-what-your-workflow-does/` |
+| Deploy container registry | `harbor` | `make/`, `docs/` |
+| Deploy Harbor on K8s | `harbor-helm` | `values.yaml`, `templates/` |
+| Configure Harbor via CLI | `harbor-cli` | `cmd/harbor/`, `examples/config/` |
+| Harbor API reference | `harbor` | `api/v2.0/` |

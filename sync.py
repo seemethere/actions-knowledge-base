@@ -73,6 +73,11 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("azure/login", "v2.2.0"),
     ("google-github-actions/auth", "v2.1.6"),
 
+    # Container Registry
+    ("goharbor/harbor", "v2.14.2"),
+    ("goharbor/harbor-helm", "v1.18.2"),
+    ("goharbor/harbor-cli", "v0.0.17"),
+
     # Documentation
     "github/docs",
 ]
