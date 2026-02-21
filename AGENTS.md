@@ -44,6 +44,12 @@ actions-knowledge-base/
     ├── harbor/
     ├── harbor-helm/
     ├── harbor-cli/
+    ├── karpenter/
+    ├── kustomize/
+    ├── k8s-device-plugin/
+    ├── go-containerregistry/
+    ├── uv/
+    ├── ccache/
     └── docs/
 ```
 
@@ -511,6 +517,114 @@ The complete source for docs.github.com. Contains comprehensive documentation fo
 
 ---
 
+### Kubernetes Infrastructure
+
+#### `repos/karpenter/` - Karpenter Node Autoscaler
+**Language:** Go | **Version:** v1.1.3 | **Org:** kubernetes-sigs
+
+Kubernetes node autoscaler that provisions just-in-time compute resources for Kubernetes clusters. Used in ciforge to dynamically provision nodes for GitHub Actions runner pods based on workflow demand.
+
+**Key paths:**
+- `charts/karpenter/` - Helm chart for deploying Karpenter
+- `pkg/apis/` - API types including NodePool, EC2NodeClass
+- `pkg/providers/` - Cloud provider implementations
+- `designs/` - Design documents and proposals
+
+**Key concepts:**
+- **NodePool** - Defines constraints for nodes Karpenter can provision (instance types, zones, taints)
+- **EC2NodeClass** - AWS-specific node configuration (AMI, security groups, subnets)
+- **Consolidation** - Automatic bin-packing and node replacement for cost optimization
+
+---
+
+#### `repos/kustomize/` - Kustomize
+**Language:** Go | **Tracking:** Latest | **Org:** kubernetes-sigs
+
+Kubernetes-native configuration management tool. Customizes Kubernetes manifests without templates using overlays, patches, and transformers. Built into `kubectl` as `kubectl apply -k`.
+
+**Key paths:**
+- `api/types/` - Kustomization API types
+- `examples/` - Example kustomizations
+- `docs/` - Documentation and guides
+
+---
+
+### GPU Support
+
+#### `repos/k8s-device-plugin/` - NVIDIA Kubernetes Device Plugin
+**Language:** Go | **Version:** v0.17.1 | **Org:** NVIDIA
+
+Kubernetes device plugin that exposes NVIDIA GPUs to containerized workloads. Deployed as a DaemonSet on GPU nodes in ciforge to enable GPU-accelerated CI runner jobs.
+
+**Key paths:**
+- `deployments/helm/nvidia-device-plugin/` - Helm chart
+- `cmd/nvidia-device-plugin/` - Main plugin binary
+- `api/config/` - Plugin configuration schema
+
+**Key features:**
+- GPU resource advertisement (`nvidia.com/gpu`)
+- GPU sharing (time-slicing, MPS, MIG)
+- Health checking and topology awareness
+
+---
+
+### Container Tooling
+
+#### `repos/go-containerregistry/` - go-containerregistry (crane)
+**Language:** Go | **Tracking:** Latest | **Org:** google
+
+Go library and CLI tools for interacting with container registries. The `crane` CLI is used in ciforge's image mirroring pipeline (`scripts/mirror-images.sh`) to copy upstream images to ECR.
+
+**Key paths:**
+- `cmd/crane/` - crane CLI source
+- `pkg/v1/remote/` - Remote registry interaction
+- `pkg/v1/mutate/` - Image mutation utilities
+- `cmd/crane/doc/` - crane command documentation
+
+**Common crane commands:**
+- `crane copy SRC DST` - Copy images between registries
+- `crane digest IMAGE` - Get image digest
+- `crane manifest IMAGE` - Fetch image manifest
+- `crane ls REPO` - List tags in a repository
+
+---
+
+### Build & Dev Tools
+
+#### `repos/uv/` - uv (Python Package Manager)
+**Language:** Rust | **Tracking:** Latest | **Org:** astral-sh
+
+Extremely fast Python package and project manager written in Rust. Used in ciforge as the exclusive Python package manager (replaces pip/conda/poetry).
+
+**Key paths:**
+- `docs/` - Documentation and guides
+- `crates/` - Rust crate source code
+
+**Common usage:**
+- `uv pip install <package>` - Install packages
+- `uv venv` - Create virtual environments
+- `uv run <script>` - Run Python scripts
+- `uv lock` - Lock dependencies
+
+---
+
+#### `repos/ccache/` - ccache (Compiler Cache)
+**Language:** C++ | **Tracking:** Latest | **Org:** ccache
+
+Compiler cache that speeds up recompilation by caching previous compilations. Installed on runner nodes via the EKS bootstrap script to accelerate C/C++ build jobs.
+
+**Key paths:**
+- `doc/` - Documentation (configuration, usage)
+- `src/` - Core source code
+- `cmake/` - Build system configuration
+
+**Key configuration:**
+- `CCACHE_DIR` - Cache directory location
+- `CCACHE_MAXSIZE` - Maximum cache size
+- `CCACHE_REMOTE_STORAGE` - Remote storage backend (Redis, HTTP)
+
+---
+
 ## Managing Repositories
 
 ### Adding a New Repository
@@ -578,3 +692,9 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Deploy Harbor on K8s | `harbor-helm` | `values.yaml`, `templates/` |
 | Configure Harbor via CLI | `harbor-cli` | `cmd/harbor/`, `examples/config/` |
 | Harbor API reference | `harbor` | `api/v2.0/` |
+| Configure Karpenter NodePools | `karpenter` | `charts/karpenter/`, `pkg/apis/` |
+| Expose GPUs to K8s pods | `k8s-device-plugin` | `deployments/helm/nvidia-device-plugin/` |
+| Mirror container images | `go-containerregistry` | `cmd/crane/` |
+| Customize K8s manifests | `kustomize` | `api/types/`, `examples/` |
+| Manage Python packages | `uv` | `docs/` |
+| Speed up C/C++ builds | `ccache` | `doc/` |

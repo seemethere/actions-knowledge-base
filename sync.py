@@ -78,6 +78,20 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("goharbor/harbor-helm", "v1.18.2"),
     ("goharbor/harbor-cli", "v0.0.17"),
 
+    # Kubernetes Infrastructure
+    ("kubernetes-sigs/karpenter", "v1.1.3"),
+    "kubernetes-sigs/kustomize",
+
+    # GPU Support
+    ("NVIDIA/k8s-device-plugin", "v0.17.1"),
+
+    # Container Tooling
+    "google/go-containerregistry",
+
+    # Build & Dev Tools
+    "astral-sh/uv",
+    "ccache/ccache",
+
     # Documentation
     "github/docs",
 ]

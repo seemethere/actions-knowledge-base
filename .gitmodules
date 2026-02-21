@@ -73,3 +73,21 @@
 [submodule "repos/harbor-helm"]
 	path = repos/harbor-helm
 	url = https://github.com/goharbor/harbor-helm.git
+[submodule "repos/ccache"]
+	path = repos/ccache
+	url = https://github.com/ccache/ccache.git
+[submodule "repos/go-containerregistry"]
+	path = repos/go-containerregistry
+	url = https://github.com/google/go-containerregistry.git
+[submodule "repos/k8s-device-plugin"]
+	path = repos/k8s-device-plugin
+	url = https://github.com/NVIDIA/k8s-device-plugin.git
+[submodule "repos/karpenter"]
+	path = repos/karpenter
+	url = https://github.com/kubernetes-sigs/karpenter.git
+[submodule "repos/kustomize"]
+	path = repos/kustomize
+	url = https://github.com/kubernetes-sigs/kustomize.git
+[submodule "repos/uv"]
+	path = repos/uv
+	url = https://github.com/astral-sh/uv.git
