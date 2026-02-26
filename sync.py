@@ -88,6 +88,9 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     # Container Tooling
     "google/go-containerregistry",
 
+    # Container Build
+    ("moby/buildkit", "v0.27.1"),
+
     # Build & Dev Tools
     "astral-sh/uv",
     "ccache/ccache",

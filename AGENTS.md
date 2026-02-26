@@ -48,6 +48,7 @@ actions-knowledge-base/
     ├── kustomize/
     ├── k8s-device-plugin/
     ├── go-containerregistry/
+    ├── buildkit/
     ├── uv/
     ├── ccache/
     └── docs/
@@ -589,6 +590,49 @@ Go library and CLI tools for interacting with container registries. The `crane` 
 
 ---
 
+### Container Build
+
+#### `repos/buildkit/` - BuildKit
+**Language:** Go | **Version:** v0.27.1 | **Org:** moby
+
+Concurrent, cache-efficient, and Dockerfile-agnostic builder toolkit. BuildKit is the next-generation container image builder used as the backend for `docker build` (via BuildX). It supports advanced features like multi-stage builds, build secrets, SSH forwarding, cache mounts, and multi-platform builds.
+
+**Key paths:**
+- `cmd/buildkitd/` - BuildKit daemon
+- `cmd/buildctl/` - BuildKit CLI client
+- `client/` - Go client library
+- `solver/` - Build graph solver and caching logic
+- `frontend/dockerfile/` - Dockerfile frontend (parser and builder)
+- `examples/` - Example Dockerfiles and build configurations
+- `docs/` - Documentation
+
+**Key features:**
+- Automatic garbage collection and build cache management
+- Concurrent dependency resolution and parallel build steps
+- Rootless execution mode
+- Multiple output formats (OCI image, Docker tarball, local directory)
+- Distributed workers and remote build cache (registry, S3, GitHub Actions)
+- LLB (low-level builder) intermediate representation for builds
+
+**Usage:**
+```bash
+# Start buildkitd daemon
+buildkitd &
+
+# Build using buildctl
+buildctl build \
+  --frontend dockerfile.v0 \
+  --local context=. \
+  --local dockerfile=. \
+  --output type=image,name=myimage:latest,push=true
+
+# Or use via Docker BuildX
+docker buildx create --use
+docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest --push .
+```
+
+---
+
 ### Build & Dev Tools
 
 #### `repos/uv/` - uv (Python Package Manager)
@@ -696,5 +740,6 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Expose GPUs to K8s pods | `k8s-device-plugin` | `deployments/helm/nvidia-device-plugin/` |
 | Mirror container images | `go-containerregistry` | `cmd/crane/` |
 | Customize K8s manifests | `kustomize` | `api/types/`, `examples/` |
+| Build container images | `buildkit` | `cmd/buildkitd/`, `frontend/dockerfile/` |
 | Manage Python packages | `uv` | `docs/` |
 | Speed up C/C++ builds | `ccache` | `doc/` |

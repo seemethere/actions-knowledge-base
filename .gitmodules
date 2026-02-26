@@ -91,3 +91,6 @@
 [submodule "repos/uv"]
 	path = repos/uv
 	url = https://github.com/astral-sh/uv.git
+[submodule "repos/buildkit"]
+	path = repos/buildkit
+	url = https://github.com/moby/buildkit.git
