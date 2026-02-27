@@ -90,6 +90,9 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 
     # Container Build
     ("moby/buildkit", "v0.27.1"),
+    ("docker/setup-buildx-action", "v3.12.0"),
+    ("docker/build-push-action", "v6.19.2"),
+    ("docker/login-action", "v3.7.0"),
 
     # Build & Dev Tools
     "astral-sh/uv",

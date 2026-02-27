@@ -94,3 +94,12 @@
 [submodule "repos/buildkit"]
 	path = repos/buildkit
 	url = https://github.com/moby/buildkit.git
+[submodule "repos/build-push-action"]
+	path = repos/build-push-action
+	url = https://github.com/docker/build-push-action.git
+[submodule "repos/login-action"]
+	path = repos/login-action
+	url = https://github.com/docker/login-action.git
+[submodule "repos/setup-buildx-action"]
+	path = repos/setup-buildx-action
+	url = https://github.com/docker/setup-buildx-action.git

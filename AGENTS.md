@@ -49,6 +49,9 @@ actions-knowledge-base/
     ├── k8s-device-plugin/
     ├── go-containerregistry/
     ├── buildkit/
+    ├── setup-buildx-action/
+    ├── build-push-action/
+    ├── login-action/
     ├── uv/
     ├── ccache/
     └── docs/
@@ -590,6 +593,90 @@ Go library and CLI tools for interacting with container registries. The `crane` 
 
 ---
 
+### Docker Actions (CI/CD)
+
+#### `repos/setup-buildx-action/` - docker/setup-buildx-action
+**Language:** TypeScript | **Version:** v3.12.0 | **Org:** docker
+
+Sets up Docker Buildx in GitHub Actions workflows. Supports local, remote, docker-container, and kubernetes drivers. Used in ciforge to connect to the in-cluster BuildKit daemon via `driver: remote`.
+
+**Key inputs:**
+- `driver` — Builder driver: `docker-container` (default), `remote`, `kubernetes`, `docker`
+- `endpoint` — Remote BuildKit endpoint (e.g., `tcp://buildkitd:1234`)
+- `append` — YAML list of additional builder nodes (for multi-arch with separate endpoints)
+- `platforms` — Fixed platform constraints for the builder
+- `driver-opts` — Driver-specific options (TLS certs for remote, etc.)
+
+**Key paths:**
+- `src/` - Action source code
+- `action.yml` - Action metadata and input definitions
+
+**Usage (remote driver):**
+```yaml
+- uses: docker/setup-buildx-action@v3
+  with:
+    driver: remote
+    endpoint: tcp://buildkitd-arm64.buildkit:1234
+```
+
+---
+
+#### `repos/build-push-action/` - docker/build-push-action
+**Language:** TypeScript | **Version:** v6.19.2 | **Org:** docker
+
+Builds and pushes container images using Buildx. Works transparently with any builder configured by `setup-buildx-action`, including remote BuildKit daemons. Registry auth is forwarded via the buildx session.
+
+**Key inputs:**
+- `context` — Build context path
+- `push` — Push image after build (shorthand for `--output type=registry`)
+- `tags` — Image tags (multi-line for multiple)
+- `platforms` — Target platforms for multi-arch builds
+- `cache-from` / `cache-to` — Build cache configuration
+- `build-args` — Build-time variables
+- `outputs` — Custom output configuration (alternative to `push`)
+
+**Key paths:**
+- `src/` - Action source code
+- `action.yml` - Action metadata and input definitions
+
+**Usage:**
+```yaml
+- uses: docker/build-push-action@v6
+  with:
+    context: .
+    push: true
+    tags: registry.example.com/my-image:latest
+```
+
+---
+
+#### `repos/login-action/` - docker/login-action
+**Language:** TypeScript | **Version:** v3.7.0 | **Org:** docker
+
+Authenticates to container registries by writing credentials to `~/.docker/config.json`. With remote BuildKit, credentials are forwarded to the daemon via the buildx session — they never need to exist on the daemon itself.
+
+**Key inputs:**
+- `registry` — Registry server URL (default: Docker Hub)
+- `username` — Registry username
+- `password` — Registry password or token
+- `ecr` — Set to `auto` for AWS ECR login
+- `logout` — Log out at the end of the job (default: true)
+
+**Key paths:**
+- `src/` - Action source code
+- `action.yml` - Action metadata and input definitions
+
+**Usage:**
+```yaml
+- uses: docker/login-action@v3
+  with:
+    registry: harbor.example.com
+    username: ${{ secrets.REGISTRY_USER }}
+    password: ${{ secrets.REGISTRY_PASS }}
+```
+
+---
+
 ### Container Build
 
 #### `repos/buildkit/` - BuildKit
@@ -741,5 +828,8 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Mirror container images | `go-containerregistry` | `cmd/crane/` |
 | Customize K8s manifests | `kustomize` | `api/types/`, `examples/` |
 | Build container images | `buildkit` | `cmd/buildkitd/`, `frontend/dockerfile/` |
+| Set up Buildx in CI | `setup-buildx-action` | `src/`, `action.yml` |
+| Build & push images in CI | `build-push-action` | `src/`, `action.yml` |
+| Registry auth in CI | `login-action` | `src/`, `action.yml` |
 | Manage Python packages | `uv` | `docs/` |
 | Speed up C/C++ builds | `ccache` | `doc/` |
