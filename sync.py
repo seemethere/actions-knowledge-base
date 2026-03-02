@@ -73,6 +73,31 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("azure/login", "v2.2.0"),
     ("google-github-actions/auth", "v2.1.6"),
 
+    # Container Registry
+    ("goharbor/harbor", "v2.14.2"),
+    ("goharbor/harbor-helm", "v1.18.2"),
+    ("goharbor/harbor-cli", "v0.0.17"),
+
+    # Kubernetes Infrastructure
+    ("kubernetes-sigs/karpenter", "v1.1.3"),
+    "kubernetes-sigs/kustomize",
+
+    # GPU Support
+    ("NVIDIA/k8s-device-plugin", "v0.17.1"),
+
+    # Container Tooling
+    "google/go-containerregistry",
+
+    # Container Build
+    ("moby/buildkit", "v0.27.1"),
+    ("docker/setup-buildx-action", "v3.12.0"),
+    ("docker/build-push-action", "v6.19.2"),
+    ("docker/login-action", "v3.7.0"),
+
+    # Build & Dev Tools
+    "astral-sh/uv",
+    "ccache/ccache",
+
     # Documentation
     "github/docs",
 ]

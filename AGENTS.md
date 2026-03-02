@@ -41,6 +41,19 @@ actions-knowledge-base/
     ├── configure-aws-credentials/
     ├── login/
     ├── auth/
+    ├── harbor/
+    ├── harbor-helm/
+    ├── harbor-cli/
+    ├── karpenter/
+    ├── kustomize/
+    ├── k8s-device-plugin/
+    ├── go-containerregistry/
+    ├── buildkit/
+    ├── setup-buildx-action/
+    ├── build-push-action/
+    ├── login-action/
+    ├── uv/
+    ├── ccache/
     └── docs/
 ```
 
@@ -409,6 +422,90 @@ Authenticates with Google Cloud using Workload Identity Federation (OIDC) or ser
 
 ---
 
+### Container Registry
+
+#### `repos/harbor/` - Harbor Container Registry
+**Language:** Go/TypeScript | **Version:** v2.14.2 | **Org:** goharbor
+
+An open-source trusted cloud native registry project (CNCF graduated) that stores, signs, and scans container content. Extends Docker Distribution with security, identity, and management features.
+
+**Key features:**
+- Vulnerability scanning of container images
+- Image signing and validation
+- Role-based access control and multi-tenancy
+- Registry replication across instances
+- RESTful API and web UI
+
+**Key paths:**
+- `src/` - Main source code for Harbor components
+- `api/v2.0/` - RESTful API specifications
+- `make/` - Build configuration and scripts
+- `docs/` - Documentation and guides
+- `tests/` - Test suites and infrastructure
+
+**Installation (Docker Compose):**
+```bash
+# Download the online installer
+wget https://github.com/goharbor/harbor/releases/download/v2.14.2/harbor-online-installer-v2.14.2.tgz
+tar xzvf harbor-online-installer-v2.14.2.tgz
+cd harbor
+cp harbor.yml.tmpl harbor.yml
+# Edit harbor.yml with your hostname, TLS, and storage settings
+./install.sh
+```
+
+---
+
+#### `repos/harbor-helm/` - Harbor Helm Chart
+**Language:** YAML/Mustache | **Version:** v1.18.2 | **Org:** goharbor
+
+Helm chart for deploying Harbor into Kubernetes clusters. Supports ingress, TLS, persistent storage, and multiple storage backends (S3, GCS, Azure, filesystem).
+
+**Key paths:**
+- `templates/` - Helm template files for Kubernetes manifests
+- `values.yaml` - Default configuration values
+- `docs/` - Deployment guides (HA, upgrades)
+
+**Key configuration:**
+- `expose.type` - Service exposure (ingress, clusterIP, nodePort, loadBalancer)
+- `expose.tls.enabled` - TLS configuration (default: true)
+- `persistence.imageChartStorage.type` - Storage backend (filesystem, s3, gcs, azure, swift, oss)
+- `harborAdminPassword` - Initial admin credentials
+- `externalURL` - External access URL
+
+**Installation:**
+```bash
+helm repo add harbor https://helm.goharbor.io
+helm install harbor harbor/harbor \
+  --set expose.type=ingress \
+  --set expose.ingress.hosts.core=core.harbor.domain \
+  --set externalURL=https://core.harbor.domain \
+  --set harborAdminPassword=YourPassword
+```
+
+---
+
+#### `repos/harbor-cli/` - Harbor CLI
+**Language:** Go | **Version:** v0.0.17 | **Org:** goharbor
+
+Official command-line interface for Harbor registries. A streamlined, user-friendly alternative to the web UI for daily operations, scripting, and automation.
+
+**Key paths:**
+- `cmd/harbor/` - Command implementations
+- `pkg/` - Core library packages
+- `doc/` - Documentation
+- `examples/config/` - Sample configuration files
+
+**Installation:**
+```bash
+# macOS
+brew install harbor-cli
+
+# Or download from GitHub releases
+```
+
+---
+
 ### Documentation
 
 #### `repos/docs/` - GitHub Documentation
@@ -421,6 +518,241 @@ The complete source for docs.github.com. Contains comprehensive documentation fo
 - `content/actions/writing-workflows/` - Workflow authoring guides
 - `content/actions/creating-actions/` - Action development guides
 - `content/actions/hosting-your-own-runners/` - Self-hosted runner guides
+
+---
+
+### Kubernetes Infrastructure
+
+#### `repos/karpenter/` - Karpenter Node Autoscaler
+**Language:** Go | **Version:** v1.1.3 | **Org:** kubernetes-sigs
+
+Kubernetes node autoscaler that provisions just-in-time compute resources for Kubernetes clusters. Used in ciforge to dynamically provision nodes for GitHub Actions runner pods based on workflow demand.
+
+**Key paths:**
+- `charts/karpenter/` - Helm chart for deploying Karpenter
+- `pkg/apis/` - API types including NodePool, EC2NodeClass
+- `pkg/providers/` - Cloud provider implementations
+- `designs/` - Design documents and proposals
+
+**Key concepts:**
+- **NodePool** - Defines constraints for nodes Karpenter can provision (instance types, zones, taints)
+- **EC2NodeClass** - AWS-specific node configuration (AMI, security groups, subnets)
+- **Consolidation** - Automatic bin-packing and node replacement for cost optimization
+
+---
+
+#### `repos/kustomize/` - Kustomize
+**Language:** Go | **Tracking:** Latest | **Org:** kubernetes-sigs
+
+Kubernetes-native configuration management tool. Customizes Kubernetes manifests without templates using overlays, patches, and transformers. Built into `kubectl` as `kubectl apply -k`.
+
+**Key paths:**
+- `api/types/` - Kustomization API types
+- `examples/` - Example kustomizations
+- `docs/` - Documentation and guides
+
+---
+
+### GPU Support
+
+#### `repos/k8s-device-plugin/` - NVIDIA Kubernetes Device Plugin
+**Language:** Go | **Version:** v0.17.1 | **Org:** NVIDIA
+
+Kubernetes device plugin that exposes NVIDIA GPUs to containerized workloads. Deployed as a DaemonSet on GPU nodes in ciforge to enable GPU-accelerated CI runner jobs.
+
+**Key paths:**
+- `deployments/helm/nvidia-device-plugin/` - Helm chart
+- `cmd/nvidia-device-plugin/` - Main plugin binary
+- `api/config/` - Plugin configuration schema
+
+**Key features:**
+- GPU resource advertisement (`nvidia.com/gpu`)
+- GPU sharing (time-slicing, MPS, MIG)
+- Health checking and topology awareness
+
+---
+
+### Container Tooling
+
+#### `repos/go-containerregistry/` - go-containerregistry (crane)
+**Language:** Go | **Tracking:** Latest | **Org:** google
+
+Go library and CLI tools for interacting with container registries. The `crane` CLI is used in ciforge's image mirroring pipeline (`scripts/mirror-images.sh`) to copy upstream images to ECR.
+
+**Key paths:**
+- `cmd/crane/` - crane CLI source
+- `pkg/v1/remote/` - Remote registry interaction
+- `pkg/v1/mutate/` - Image mutation utilities
+- `cmd/crane/doc/` - crane command documentation
+
+**Common crane commands:**
+- `crane copy SRC DST` - Copy images between registries
+- `crane digest IMAGE` - Get image digest
+- `crane manifest IMAGE` - Fetch image manifest
+- `crane ls REPO` - List tags in a repository
+
+---
+
+### Docker Actions (CI/CD)
+
+#### `repos/setup-buildx-action/` - docker/setup-buildx-action
+**Language:** TypeScript | **Version:** v3.12.0 | **Org:** docker
+
+Sets up Docker Buildx in GitHub Actions workflows. Supports local, remote, docker-container, and kubernetes drivers. Used in ciforge to connect to the in-cluster BuildKit daemon via `driver: remote`.
+
+**Key inputs:**
+- `driver` — Builder driver: `docker-container` (default), `remote`, `kubernetes`, `docker`
+- `endpoint` — Remote BuildKit endpoint (e.g., `tcp://buildkitd:1234`)
+- `append` — YAML list of additional builder nodes (for multi-arch with separate endpoints)
+- `platforms` — Fixed platform constraints for the builder
+- `driver-opts` — Driver-specific options (TLS certs for remote, etc.)
+
+**Key paths:**
+- `src/` - Action source code
+- `action.yml` - Action metadata and input definitions
+
+**Usage (remote driver):**
+```yaml
+- uses: docker/setup-buildx-action@v3
+  with:
+    driver: remote
+    endpoint: tcp://buildkitd-arm64.buildkit:1234
+```
+
+---
+
+#### `repos/build-push-action/` - docker/build-push-action
+**Language:** TypeScript | **Version:** v6.19.2 | **Org:** docker
+
+Builds and pushes container images using Buildx. Works transparently with any builder configured by `setup-buildx-action`, including remote BuildKit daemons. Registry auth is forwarded via the buildx session.
+
+**Key inputs:**
+- `context` — Build context path
+- `push` — Push image after build (shorthand for `--output type=registry`)
+- `tags` — Image tags (multi-line for multiple)
+- `platforms` — Target platforms for multi-arch builds
+- `cache-from` / `cache-to` — Build cache configuration
+- `build-args` — Build-time variables
+- `outputs` — Custom output configuration (alternative to `push`)
+
+**Key paths:**
+- `src/` - Action source code
+- `action.yml` - Action metadata and input definitions
+
+**Usage:**
+```yaml
+- uses: docker/build-push-action@v6
+  with:
+    context: .
+    push: true
+    tags: registry.example.com/my-image:latest
+```
+
+---
+
+#### `repos/login-action/` - docker/login-action
+**Language:** TypeScript | **Version:** v3.7.0 | **Org:** docker
+
+Authenticates to container registries by writing credentials to `~/.docker/config.json`. With remote BuildKit, credentials are forwarded to the daemon via the buildx session — they never need to exist on the daemon itself.
+
+**Key inputs:**
+- `registry` — Registry server URL (default: Docker Hub)
+- `username` — Registry username
+- `password` — Registry password or token
+- `ecr` — Set to `auto` for AWS ECR login
+- `logout` — Log out at the end of the job (default: true)
+
+**Key paths:**
+- `src/` - Action source code
+- `action.yml` - Action metadata and input definitions
+
+**Usage:**
+```yaml
+- uses: docker/login-action@v3
+  with:
+    registry: harbor.example.com
+    username: ${{ secrets.REGISTRY_USER }}
+    password: ${{ secrets.REGISTRY_PASS }}
+```
+
+---
+
+### Container Build
+
+#### `repos/buildkit/` - BuildKit
+**Language:** Go | **Version:** v0.27.1 | **Org:** moby
+
+Concurrent, cache-efficient, and Dockerfile-agnostic builder toolkit. BuildKit is the next-generation container image builder used as the backend for `docker build` (via BuildX). It supports advanced features like multi-stage builds, build secrets, SSH forwarding, cache mounts, and multi-platform builds.
+
+**Key paths:**
+- `cmd/buildkitd/` - BuildKit daemon
+- `cmd/buildctl/` - BuildKit CLI client
+- `client/` - Go client library
+- `solver/` - Build graph solver and caching logic
+- `frontend/dockerfile/` - Dockerfile frontend (parser and builder)
+- `examples/` - Example Dockerfiles and build configurations
+- `docs/` - Documentation
+
+**Key features:**
+- Automatic garbage collection and build cache management
+- Concurrent dependency resolution and parallel build steps
+- Rootless execution mode
+- Multiple output formats (OCI image, Docker tarball, local directory)
+- Distributed workers and remote build cache (registry, S3, GitHub Actions)
+- LLB (low-level builder) intermediate representation for builds
+
+**Usage:**
+```bash
+# Start buildkitd daemon
+buildkitd &
+
+# Build using buildctl
+buildctl build \
+  --frontend dockerfile.v0 \
+  --local context=. \
+  --local dockerfile=. \
+  --output type=image,name=myimage:latest,push=true
+
+# Or use via Docker BuildX
+docker buildx create --use
+docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest --push .
+```
+
+---
+
+### Build & Dev Tools
+
+#### `repos/uv/` - uv (Python Package Manager)
+**Language:** Rust | **Tracking:** Latest | **Org:** astral-sh
+
+Extremely fast Python package and project manager written in Rust. Used in ciforge as the exclusive Python package manager (replaces pip/conda/poetry).
+
+**Key paths:**
+- `docs/` - Documentation and guides
+- `crates/` - Rust crate source code
+
+**Common usage:**
+- `uv pip install <package>` - Install packages
+- `uv venv` - Create virtual environments
+- `uv run <script>` - Run Python scripts
+- `uv lock` - Lock dependencies
+
+---
+
+#### `repos/ccache/` - ccache (Compiler Cache)
+**Language:** C++ | **Tracking:** Latest | **Org:** ccache
+
+Compiler cache that speeds up recompilation by caching previous compilations. Installed on runner nodes via the EKS bootstrap script to accelerate C/C++ build jobs.
+
+**Key paths:**
+- `doc/` - Documentation (configuration, usage)
+- `src/` - Core source code
+- `cmake/` - Build system configuration
+
+**Key configuration:**
+- `CCACHE_DIR` - Cache directory location
+- `CCACHE_MAXSIZE` - Maximum cache size
+- `CCACHE_REMOTE_STORAGE` - Remote storage backend (Redis, HTTP)
 
 ---
 
@@ -487,3 +819,17 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Configure GCP OIDC | `auth` | `src/` |
 | Learn workflow syntax | `docs` | `content/actions/writing-workflows/` |
 | Understand contexts | `docs` | `content/actions/writing-workflows/choosing-what-your-workflow-does/` |
+| Deploy container registry | `harbor` | `make/`, `docs/` |
+| Deploy Harbor on K8s | `harbor-helm` | `values.yaml`, `templates/` |
+| Configure Harbor via CLI | `harbor-cli` | `cmd/harbor/`, `examples/config/` |
+| Harbor API reference | `harbor` | `api/v2.0/` |
+| Configure Karpenter NodePools | `karpenter` | `charts/karpenter/`, `pkg/apis/` |
+| Expose GPUs to K8s pods | `k8s-device-plugin` | `deployments/helm/nvidia-device-plugin/` |
+| Mirror container images | `go-containerregistry` | `cmd/crane/` |
+| Customize K8s manifests | `kustomize` | `api/types/`, `examples/` |
+| Build container images | `buildkit` | `cmd/buildkitd/`, `frontend/dockerfile/` |
+| Set up Buildx in CI | `setup-buildx-action` | `src/`, `action.yml` |
+| Build & push images in CI | `build-push-action` | `src/`, `action.yml` |
+| Registry auth in CI | `login-action` | `src/`, `action.yml` |
+| Manage Python packages | `uv` | `docs/` |
+| Speed up C/C++ builds | `ccache` | `doc/` |
