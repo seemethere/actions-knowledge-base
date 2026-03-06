@@ -103,3 +103,6 @@
 [submodule "repos/setup-buildx-action"]
 	path = repos/setup-buildx-action
 	url = https://github.com/docker/setup-buildx-action.git
+[submodule "repos/git"]
+	path = repos/git
+	url = https://github.com/git/git.git
