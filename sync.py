@@ -47,6 +47,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 
     # Essential Actions
     ("checkout", "v4.2.2"),
+    "seemethere/checkout",
     ("cache", "v4.1.2"),
     ("upload-artifact", "v4.4.3"),
     ("download-artifact", "v4.1.8"),
@@ -115,9 +116,15 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 class RepoConfig:
     """Configuration for a repository."""
 
-    name: str  # Local name (repo name only, used for submodule path)
+    name: str  # GitHub repo name
     ref: str | None = None  # None means track latest
     org: str = "actions"  # GitHub organization
+    local_name: str | None = None  # Override directory name (auto-set for collisions)
+
+    @property
+    def dir_name(self) -> str:
+        """Name used for submodule directory and dictionary keys."""
+        return self.local_name if self.local_name else self.name
 
     @property
     def is_pinned(self) -> bool:
@@ -144,9 +151,22 @@ def parse_repo_config(entry: str | tuple[str, str]) -> RepoConfig:
     return RepoConfig(name=repo_part, ref=ref)
 
 
+def _resolve_name_collisions(configs: list[RepoConfig]) -> None:
+    """Disambiguate repos sharing the same name using org--name convention."""
+    from collections import Counter
+
+    name_counts = Counter(c.name for c in configs)
+    duplicates = {name for name, count in name_counts.items() if count > 1}
+    for config in configs:
+        if config.name in duplicates:
+            config.local_name = f"{config.org}--{config.name}"
+
+
 def get_repo_configs() -> list[RepoConfig]:
     """Get parsed repo configurations from the allowlist."""
-    return [parse_repo_config(entry) for entry in ALLOWED_REPOS]
+    configs = [parse_repo_config(entry) for entry in ALLOWED_REPOS]
+    _resolve_name_collisions(configs)
+    return configs
 
 
 GITHUB_ORG = "actions"
@@ -193,15 +213,15 @@ def get_existing_submodules() -> dict[str, Path]:
 
 
 def add_submodule(config: RepoConfig, dry_run: bool = False) -> tuple[str, bool, str]:
-    """Add a submodule. Returns (repo_name, success, message)."""
+    """Add a submodule. Returns (dir_name, success, message)."""
     url = config.github_url
-    path = SUBMODULE_DIR / config.name
+    path = SUBMODULE_DIR / config.dir_name
 
     if path.exists() and any(path.iterdir()):
-        return (config.name, False, "already exists")
+        return (config.dir_name, False, "already exists")
 
     if dry_run:
-        return (config.name, True, "would add")
+        return (config.dir_name, True, "would add")
 
     try:
         # Remove empty directory if it exists (leftover from failed attempt)
@@ -214,9 +234,9 @@ def add_submodule(config: RepoConfig, dry_run: bool = False) -> tuple[str, bool,
             capture_output=True,
             text=True,
         )
-        return (config.name, True, "added")
+        return (config.dir_name, True, "added")
     except subprocess.CalledProcessError as e:
-        return (config.name, False, e.stderr.strip() or str(e))
+        return (config.dir_name, False, e.stderr.strip() or str(e))
 
 
 def add_submodules(
@@ -228,7 +248,7 @@ def add_submodules(
     if not configs:
         return results
 
-    sorted_configs = sorted(configs, key=lambda c: c.name)
+    sorted_configs = sorted(configs, key=lambda c: c.dir_name)
 
     with Progress(
         SpinnerColumn(),
@@ -237,7 +257,7 @@ def add_submodules(
     ) as progress:
         for config in sorted_configs:
             progress.update(
-                progress.add_task(f"[cyan]Adding {config.name}...", total=None),
+                progress.add_task(f"[cyan]Adding {config.dir_name}...", total=None),
             )
             result = add_submodule(config, dry_run)
             results.append(result)
@@ -276,16 +296,16 @@ def remove_submodule(
 def update_submodule(
     config: RepoConfig, dry_run: bool = False
 ) -> tuple[str, bool, str]:
-    """Update a single submodule. Returns (repo_name, success, message)."""
-    path = SUBMODULE_DIR / config.name
+    """Update a single submodule. Returns (dir_name, success, message)."""
+    path = SUBMODULE_DIR / config.dir_name
 
     if not path.exists():
-        return (config.name, False, "not found")
+        return (config.dir_name, False, "not found")
 
     if dry_run:
         if config.is_pinned:
-            return (config.name, True, f"would checkout {config.ref}")
-        return (config.name, True, "would pull latest")
+            return (config.dir_name, True, f"would checkout {config.ref}")
+        return (config.dir_name, True, "would pull latest")
 
     try:
         if config.is_pinned and config.ref is not None:
@@ -302,7 +322,7 @@ def update_submodule(
                 capture_output=True,
                 text=True,
             )
-            return (config.name, True, f"@ {config.ref}")
+            return (config.dir_name, True, f"@ {config.ref}")
         else:
             # Pull latest from default branch
             subprocess.run(
@@ -311,9 +331,9 @@ def update_submodule(
                 capture_output=True,
                 text=True,
             )
-            return (config.name, True, "latest")
+            return (config.dir_name, True, "latest")
     except subprocess.CalledProcessError as e:
-        return (config.name, False, e.stderr.strip() or str(e))
+        return (config.dir_name, False, e.stderr.strip() or str(e))
 
 
 def update_submodules(
@@ -399,11 +419,11 @@ def sync(dry_run: bool = False) -> int:
 
     # Parse repo configurations
     configs = get_repo_configs()
-    config_by_name = {c.name: c for c in configs}
+    config_by_name = {c.dir_name: c for c in configs}
 
     # Get current state
     existing = get_existing_submodules()
-    allowed_names = {c.name for c in configs}
+    allowed_names = {c.dir_name for c in configs}
     existing_set = set(existing.keys())
 
     # Determine what to add and remove

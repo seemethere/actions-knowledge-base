@@ -7,9 +7,6 @@
 [submodule "repos/cache"]
 	path = repos/cache
 	url = https://github.com/actions/cache.git
-[submodule "repos/checkout"]
-	path = repos/checkout
-	url = https://github.com/actions/checkout.git
 [submodule "repos/configure-aws-credentials"]
 	path = repos/configure-aws-credentials
 	url = https://github.com/aws-actions/configure-aws-credentials.git
@@ -106,3 +103,9 @@
 [submodule "repos/git"]
 	path = repos/git
 	url = https://github.com/git/git.git
+[submodule "repos/actions--checkout"]
+	path = repos/actions--checkout
+	url = https://github.com/actions/checkout.git
+[submodule "repos/seemethere--checkout"]
+	path = repos/seemethere--checkout
+	url = https://github.com/seemethere/checkout.git
