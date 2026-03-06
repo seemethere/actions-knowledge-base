@@ -54,6 +54,7 @@ actions-knowledge-base/
     ├── login-action/
     ├── uv/
     ├── ccache/
+    ├── git/
     └── docs/
 ```
 
@@ -720,6 +721,29 @@ docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest --push 
 
 ---
 
+### Version Control
+
+#### `repos/git/` - Git
+**Language:** C | **Tracking:** Latest | **Org:** git
+
+The distributed version control system. The canonical source for understanding Git internals, transport protocols, and plumbing commands. Essential reference for debugging Git behavior in CI workflows, understanding shallow clones, sparse checkouts, and submodule operations used by actions like `actions/checkout`.
+
+**Key paths:**
+- `Documentation/` - Man pages and technical docs
+- `builtin/` - Built-in command implementations (clone, fetch, checkout, etc.)
+- `t/` - Test suite (excellent examples of edge-case behavior)
+- `contrib/` - Community-contributed tools and hooks
+- `templates/` - Default hook templates and repo scaffolding
+
+**Key concepts:**
+- **Transport protocols** - HTTP, SSH, and Git protocol implementations
+- **Shallow/partial clone** - `--depth`, `--filter=blob:none`, `--single-branch`
+- **Submodules** - Nested repository management
+- **Sparse checkout** - Working with subsets of large repos
+- **Pack format** - Object storage and transfer optimization
+
+---
+
 ### Build & Dev Tools
 
 #### `repos/uv/` - uv (Python Package Manager)
@@ -833,3 +857,5 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Registry auth in CI | `login-action` | `src/`, `action.yml` |
 | Manage Python packages | `uv` | `docs/` |
 | Speed up C/C++ builds | `ccache` | `doc/` |
+| Debug Git internals/protocols | `git` | `Documentation/`, `builtin/` |
+| Understand shallow/sparse clone | `git` | `builtin/clone.c`, `Documentation/` |

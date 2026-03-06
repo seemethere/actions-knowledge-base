@@ -98,6 +98,9 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     "astral-sh/uv",
     "ccache/ccache",
 
+    # Version Control
+    "git/git",
+
     # Documentation
     "github/docs",
 ]
