@@ -109,3 +109,15 @@
 [submodule "repos/seemethere--checkout"]
 	path = repos/seemethere--checkout
 	url = https://github.com/seemethere/checkout.git
+[submodule "repos/alloy"]
+	path = repos/alloy
+	url = https://github.com/grafana/alloy.git
+[submodule "repos/dcgm-exporter"]
+	path = repos/dcgm-exporter
+	url = https://github.com/NVIDIA/dcgm-exporter.git
+[submodule "repos/helm-charts"]
+	path = repos/helm-charts
+	url = https://github.com/prometheus-community/helm-charts.git
+[submodule "repos/helm"]
+	path = repos/helm
+	url = https://github.com/helm/helm.git

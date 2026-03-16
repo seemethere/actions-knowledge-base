@@ -82,9 +82,15 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     # Kubernetes Infrastructure
     ("kubernetes-sigs/karpenter", "v1.1.3"),
     "kubernetes-sigs/kustomize",
+    "helm/helm",
 
     # GPU Support
     ("NVIDIA/k8s-device-plugin", "v0.17.1"),
+    ("NVIDIA/dcgm-exporter", "4.5.2-4.8.1"),
+
+    # Monitoring & Observability
+    "prometheus-community/helm-charts",
+    ("grafana/alloy", "v1.9.2"),
 
     # Container Tooling
     "google/go-containerregistry",

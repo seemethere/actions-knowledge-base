@@ -55,7 +55,10 @@ actions-knowledge-base/
     ├── uv/
     ├── ccache/
     ├── git/
-    └── docs/
+    ├── docs/
+    ├── helm-charts/
+    ├── alloy/
+    └── dcgm-exporter/
 ```
 
 ## Repository Summaries
@@ -571,6 +574,24 @@ Kubernetes device plugin that exposes NVIDIA GPUs to containerized workloads. De
 - GPU sharing (time-slicing, MPS, MIG)
 - Health checking and topology awareness
 
+#### `repos/dcgm-exporter/` - NVIDIA DCGM Exporter
+**Language:** Go | **Version:** 4.5.2-4.8.1 | **Org:** NVIDIA
+
+Prometheus exporter for NVIDIA GPU metrics based on DCGM (Data Center GPU Manager). Deployed as a DaemonSet on GPU nodes in OSDC to expose GPU utilization, memory, temperature, and error metrics to Prometheus.
+
+**Key paths:**
+- `cmd/dcgm-exporter/` - Main binary
+- `pkg/dcgm/` - DCGM library bindings
+- `etc/default-counters.csv` - Default metrics to export
+- `etc/dcp-metrics-included.csv` - Profiling metrics
+- `deployment/` - Kubernetes deployment manifests
+
+**Key features:**
+- GPU utilization, memory, temperature, power, ECC error metrics
+- Per-GPU and per-pod metric labeling via `DCGM_FI_*` field IDs
+- Kubernetes pod-to-GPU mapping (requires `SYS_ADMIN` capability)
+- Configurable metric sets via CSV counter files
+
 ---
 
 ### Container Tooling
@@ -780,6 +801,53 @@ Compiler cache that speeds up recompilation by caching previous compilations. In
 
 ---
 
+### Monitoring & Observability
+
+#### `repos/helm-charts/` - Prometheus Community Helm Charts
+**Language:** Helm/YAML | **Tracking:** Latest | **Org:** prometheus-community
+
+Monorepo containing all Prometheus community Helm charts. The key chart for OSDC is **kube-prometheus-stack**, which bundles Prometheus, Grafana, AlertManager, Prometheus Operator, node-exporter, and kube-state-metrics into a single install. OSDC deploys this as part of the `monitoring` module.
+
+**Key paths:**
+- `charts/kube-prometheus-stack/values.yaml` - Primary values file (5500+ lines, the main reference for configuration)
+- `charts/kube-prometheus-stack/Chart.yaml` - Chart metadata and sub-chart dependencies
+- `charts/kube-prometheus-stack/templates/` - Helm templates (`alertmanager/`, `exporters/`, `grafana/`, `prometheus/`, `prometheus-operator/`)
+- `charts/kube-prometheus-stack/charts/crds/` - Prometheus Operator CRD subchart
+- `charts/kube-prometheus-stack/UPGRADE.md` - Version upgrade notes and breaking changes
+- `charts/kube-state-metrics/` - Standalone kube-state-metrics chart
+- `charts/prometheus-node-exporter/` - Standalone node-exporter chart
+- `charts/prometheus-operator-crds/` - Standalone CRDs chart (can be installed independently)
+
+**Key gotchas (OSDC-specific):**
+- The admission webhook pre-install job needs tolerations on tainted clusters (see `docs/monitoring/kube-prometheus-stack-admission-webhook-taints.md`)
+- ServiceMonitor/PodMonitor CRDs are installed by the chart — resources referencing these CRDs must be applied after Helm install (see `docs/monitoring/kube-prometheus-stack-crd-ordering.md`)
+
+#### `repos/alloy/` - Grafana Alloy
+**Language:** Go | **Version:** v1.9.2 | **Org:** grafana
+
+Grafana's OpenTelemetry Collector distribution for collecting, transforming, and shipping telemetry data. In OSDC, Alloy is optionally deployed alongside Prometheus to push metrics to Grafana Cloud via `prometheus.remote_write`. It independently discovers ServiceMonitor/PodMonitor CRDs.
+
+**Key paths:**
+- `operations/helm/charts/alloy/` - Helm chart (values.yaml, templates/)
+- `internal/component/` - All built-in components (prometheus, loki, otel, etc.)
+- `syntax/` - Alloy config language parser (formerly "River" — HCL-like, not YAML)
+- `docs/sources/reference/` - Component reference documentation
+- `docs/sources/configure/` - Configuration guides
+- `example-config.alloy` - Example config file
+
+**Key features:**
+- Prometheus-compatible scraping via `prometheus.scrape` and `prometheus.operator.servicemonitors`
+- Push to remote endpoints via `prometheus.remote_write`
+- Clustering for HA (hash ring distributes scrape targets across replicas)
+- OpenTelemetry protocol support (metrics, logs, traces)
+
+**Key gotchas (OSDC-specific):**
+- Config uses HCL-like syntax ("Alloy syntax"), not YAML — see `docs/monitoring/grafana-alloy-setup.md`
+- Clustering must be enabled per component to avoid duplicate metrics across replicas
+- Deployment is secret-gated: only installed when `grafana-cloud-credentials` exists
+
+---
+
 ## Managing Repositories
 
 ### Adding a New Repository
@@ -859,3 +927,12 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Speed up C/C++ builds | `ccache` | `doc/` |
 | Debug Git internals/protocols | `git` | `Documentation/`, `builtin/` |
 | Understand shallow/sparse clone | `git` | `builtin/clone.c`, `Documentation/` |
+| Configure kube-prometheus-stack | `helm-charts` | `charts/kube-prometheus-stack/values.yaml` |
+| Upgrade kube-prometheus-stack | `helm-charts` | `charts/kube-prometheus-stack/UPGRADE.md` |
+| Understand Prometheus Operator CRDs | `helm-charts` | `charts/kube-prometheus-stack/charts/crds/` |
+| Configure node-exporter | `helm-charts` | `charts/prometheus-node-exporter/values.yaml` |
+| Configure kube-state-metrics | `helm-charts` | `charts/kube-state-metrics/values.yaml` |
+| Configure Grafana Alloy | `alloy` | `operations/helm/charts/alloy/values.yaml`, `docs/sources/reference/` |
+| Understand Alloy config syntax | `alloy` | `syntax/`, `example-config.alloy` |
+| Configure DCGM GPU metrics | `dcgm-exporter` | `etc/default-counters.csv`, `deployment/` |
+| Expose GPU metrics to Prometheus | `dcgm-exporter` | `cmd/dcgm-exporter/`, `pkg/dcgm/` |
