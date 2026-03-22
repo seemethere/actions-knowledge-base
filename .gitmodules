@@ -121,3 +121,12 @@
 [submodule "repos/helm"]
 	path = repos/helm
 	url = https://github.com/helm/helm.git
+[submodule "repos/kube-state-metrics"]
+	path = repos/kube-state-metrics
+	url = https://github.com/kubernetes/kube-state-metrics.git
+[submodule "repos/node_exporter"]
+	path = repos/node_exporter
+	url = https://github.com/prometheus/node_exporter.git
+[submodule "repos/prometheus-operator"]
+	path = repos/prometheus-operator
+	url = https://github.com/prometheus-operator/prometheus-operator.git

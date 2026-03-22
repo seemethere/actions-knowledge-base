@@ -91,6 +91,9 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     # Monitoring & Observability
     "prometheus-community/helm-charts",
     ("grafana/alloy", "v1.9.2"),
+    ("prometheus/node_exporter", "v1.10.2"),
+    ("kubernetes/kube-state-metrics", "v2.18.0"),
+    ("prometheus-operator/prometheus-operator", "v0.89.0"),
 
     # Container Tooling
     "google/go-containerregistry",
