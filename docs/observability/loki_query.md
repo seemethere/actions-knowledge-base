@@ -76,6 +76,10 @@ The `start` and `end` parameters are Unix timestamps in **nanoseconds**.
 | `job` | `loki.source.journal.system` | Log source type |
 | `service_name` | `loki.source.journal.system` | Service name |
 | `unit` | `kubelet.service`, `containerd.service` | Systemd unit (journal logs only) |
+| `namespace` | `arc-runners` | Kubernetes namespace (pod logs) |
+| `container` | `runner` | Container name (pod logs) |
+| `app` | `arc-runner-set` | From `app.kubernetes.io/name` pod label |
+| `level` | `info`, `error`, `warn` | Log level (extracted by module pipelines) |
 
 ### Structured Metadata (go after `{}` with pipe `|` syntax)
 
@@ -83,13 +87,15 @@ The `start` and `end` parameters are Unix timestamps in **nanoseconds**.
 |-------|---------|-------------|
 | `node` | `ip-10-4-154-0.us-east-2.compute.internal` | Node hostname |
 | `pod` | `runner-abcdef-xyz` | Pod name |
-| `namespace` | `arc-runners` | Kubernetes namespace |
-| `container` | `runner` | Container name |
+| `workflow_run_id` | `12345678` | GitHub Actions workflow run ID |
+| `sourcecomponent` | `default-scheduler` | Source component (K8s events) |
 
 **Key distinction**: Structured metadata uses pipe syntax AFTER the stream selector:
 ```
-{cluster="pytorch-arc-cbr-production", unit="kubelet.service"} | node="ip-10-4-154-0.us-east-2.compute.internal"
+{cluster="pytorch-arc-cbr-production", namespace="arc-runners"} | pod="runner-abcdef-xyz"
 ```
+
+**Important**: `namespace` and `container` are **indexed labels** — they go inside `{}`. Only `pod` and `node` are structured metadata for pod logs.
 
 ## Example Queries
 

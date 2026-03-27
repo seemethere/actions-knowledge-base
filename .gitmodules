@@ -130,3 +130,9 @@
 [submodule "repos/prometheus-operator"]
 	path = repos/prometheus-operator
 	url = https://github.com/prometheus-operator/prometheus-operator.git
+[submodule "repos/nginx"]
+	path = repos/nginx
+	url = https://github.com/nginx/nginx.git
+[submodule "repos/pypiserver"]
+	path = repos/pypiserver
+	url = https://github.com/pypiserver/pypiserver.git

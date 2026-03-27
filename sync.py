@@ -113,6 +113,10 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 
     # Documentation
     "github/docs",
+
+    # Web & Package Servers
+    "nginx/nginx",
+    "pypiserver/pypiserver",
 ]
 
 
