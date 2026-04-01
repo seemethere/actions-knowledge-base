@@ -41,9 +41,9 @@ from rich.text import Text
 
 ALLOWED_REPOS: list[str | tuple[str, str]] = [
     # Core Runner Infrastructure
-    ("runner", "v2.321.0"),
+    ("runner", "v2.313.0"),
     "runner-images",
-    ("actions-runner-controller", "v0.9.3"),
+    ("actions-runner-controller", "gha-runner-scale-set-0.14.0"),
 
     # Essential Actions
     ("checkout", "v4.2.2"),
@@ -80,12 +80,12 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("goharbor/harbor-cli", "v0.0.17"),
 
     # Kubernetes Infrastructure
-    ("kubernetes-sigs/karpenter", "v1.1.3"),
+    ("kubernetes-sigs/karpenter", "v1.10.0"),
     "kubernetes-sigs/kustomize",
     "helm/helm",
 
     # GPU Support
-    ("NVIDIA/k8s-device-plugin", "v0.17.1"),
+    ("NVIDIA/k8s-device-plugin", "v0.14.5"),
     ("NVIDIA/dcgm-exporter", "4.5.2-4.8.1"),
 
     # Monitoring & Observability
@@ -105,7 +105,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("docker/login-action", "v3.7.0"),
 
     # Build & Dev Tools
-    "astral-sh/uv",
+    ("astral-sh/uv", "0.10.12"),
     "ccache/ccache",
 
     # Version Control
@@ -116,7 +116,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 
     # Web & Package Servers
     "nginx/nginx",
-    "pypiserver/pypiserver",
+    ("pypiserver/pypiserver", "v2.3.2"),
 ]
 
 
