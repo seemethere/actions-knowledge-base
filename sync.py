@@ -44,6 +44,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("runner", "v2.313.0"),
     "runner-images",
     ("actions-runner-controller", "gha-runner-scale-set-0.14.0"),
+    ("scaleset", "v0.2.0"),
 
     # Essential Actions
     ("checkout", "v4.2.2"),
@@ -110,6 +111,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 
     # Version Control
     "git/git",
+    "ezyang/ghstack",
 
     # Documentation
     "github/docs",

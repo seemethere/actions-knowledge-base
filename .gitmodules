@@ -136,3 +136,9 @@
 [submodule "repos/pypiserver"]
 	path = repos/pypiserver
 	url = https://github.com/pypiserver/pypiserver.git
+[submodule "repos/scaleset"]
+	path = repos/scaleset
+	url = https://github.com/actions/scaleset.git
+[submodule "repos/ghstack"]
+	path = repos/ghstack
+	url = https://github.com/ezyang/ghstack.git
