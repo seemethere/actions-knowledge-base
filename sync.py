@@ -52,6 +52,9 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("cache", "v4.1.2"),
     ("upload-artifact", "v4.4.3"),
     ("download-artifact", "v4.1.8"),
+    ("seemethere/upload-artifact-s3", "v5.1.0"),
+    ("seemethere/download-artifact-s3", "v4"),
+    ("nick-fields/retry", "v3.0.0"),
 
     # Language Setup
     ("setup-node", "v4.1.0"),
@@ -72,6 +75,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
 
     # Cloud Providers
     ("aws-actions/configure-aws-credentials", "v4.0.2"),
+    ("aws-actions/amazon-ecr-login", "v2.0.1"),
     ("azure/login", "v2.2.0"),
     ("google-github-actions/auth", "v2.1.6"),
 
@@ -84,6 +88,7 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     ("kubernetes-sigs/karpenter", "v1.10.0"),
     "kubernetes-sigs/kustomize",
     "helm/helm",
+    ("kubernetes/dns", "1.26.8"),
 
     # GPU Support
     ("NVIDIA/k8s-device-plugin", "v0.14.5"),
@@ -102,12 +107,24 @@ ALLOWED_REPOS: list[str | tuple[str, str]] = [
     # Container Build
     ("moby/buildkit", "v0.27.1"),
     ("docker/setup-buildx-action", "v3.12.0"),
+    ("docker/setup-qemu-action", "v3.6.0"),
     ("docker/build-push-action", "v6.19.2"),
     ("docker/login-action", "v3.7.0"),
 
     # Build & Dev Tools
     ("astral-sh/uv", "0.10.12"),
+    ("astral-sh/setup-uv", "v6"),
     "ccache/ccache",
+
+    # PyTorch CI third-party actions
+    ("anthropics/claude-code-action", "v1.0.89"),
+    ("softprops/action-gh-release", "v2.2.2"),
+    ("octokit/request-action", "v2.x"),
+    ("ossf/scorecard-action", "v2.0.3"),
+    ("necojackarc/auto-request-review", "v0.7.0"),
+    ("ilammy/msvc-dev-cmd", "v1"),
+    ("ethanis/nitpicker", "v1"),
+    ("github/codeql-action", "v1.0.26"),
 
     # Version Control
     "git/git",

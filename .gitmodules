@@ -142,3 +142,48 @@
 [submodule "repos/ghstack"]
 	path = repos/ghstack
 	url = https://github.com/ezyang/ghstack.git
+[submodule "repos/download-artifact-s3"]
+	path = repos/download-artifact-s3
+	url = https://github.com/seemethere/download-artifact-s3.git
+[submodule "repos/retry"]
+	path = repos/retry
+	url = https://github.com/nick-fields/retry.git
+[submodule "repos/upload-artifact-s3"]
+	path = repos/upload-artifact-s3
+	url = https://github.com/seemethere/upload-artifact-s3.git
+[submodule "repos/action-gh-release"]
+	path = repos/action-gh-release
+	url = https://github.com/softprops/action-gh-release.git
+[submodule "repos/amazon-ecr-login"]
+	path = repos/amazon-ecr-login
+	url = https://github.com/aws-actions/amazon-ecr-login.git
+[submodule "repos/auto-request-review"]
+	path = repos/auto-request-review
+	url = https://github.com/necojackarc/auto-request-review.git
+[submodule "repos/claude-code-action"]
+	path = repos/claude-code-action
+	url = https://github.com/anthropics/claude-code-action.git
+[submodule "repos/codeql-action"]
+	path = repos/codeql-action
+	url = https://github.com/github/codeql-action.git
+[submodule "repos/msvc-dev-cmd"]
+	path = repos/msvc-dev-cmd
+	url = https://github.com/ilammy/msvc-dev-cmd.git
+[submodule "repos/nitpicker"]
+	path = repos/nitpicker
+	url = https://github.com/ethanis/nitpicker.git
+[submodule "repos/request-action"]
+	path = repos/request-action
+	url = https://github.com/octokit/request-action.git
+[submodule "repos/scorecard-action"]
+	path = repos/scorecard-action
+	url = https://github.com/ossf/scorecard-action.git
+[submodule "repos/setup-qemu-action"]
+	path = repos/setup-qemu-action
+	url = https://github.com/docker/setup-qemu-action.git
+[submodule "repos/setup-uv"]
+	path = repos/setup-uv
+	url = https://github.com/astral-sh/setup-uv.git
+[submodule "repos/dns"]
+	path = repos/dns
+	url = https://github.com/kubernetes/dns.git
