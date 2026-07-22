@@ -1,6 +1,6 @@
 # GitHub Actions Knowledge Base - Agent Guide
 
-This repository is a curated collection of GitHub Actions open-source projects, organized as git submodules. It serves as a knowledge base for AI agents and developers working with GitHub Actions workflows and infrastructure.
+This repository is a curated knowledge base for AI agents and developers working with CI/CD and the infrastructure around it. It mirrors upstream open-source projects as pinned git submodules under `repos/` — spanning GitHub Actions, self-hosted runners and the Actions Runner Controller (ARC), Kubernetes infrastructure, GPU support, container registries (Harbor), container build tooling (BuildKit and the Docker build actions), observability (Prometheus and Grafana), version control, and web/package servers — plus our own findings, gotchas, and notes under `docs/`.
 
 ## Quick Start
 
@@ -14,51 +14,113 @@ uv run sync.py --dry-run
 
 ## Repository Structure
 
+Repos under `repos/` are pinned git submodules. The authoritative current pin for each repo lives in `.gitmodules` and `sync.py`'s `ALLOWED_REPOS`; `git submodule status` shows the checked-out commit. When a repo's bare name would collide with another, `sync.py` names its directory `{org}--{name}` — the only current collision is `actions--checkout` and `seemethere--checkout`.
+
 ```
 actions-knowledge-base/
 ├── sync.py              # Repository sync tool
 ├── pyproject.toml       # Python project config
-├── insights/            # Articles and analysis
-└── repos/               # Submodules directory
+├── uv.lock              # Locked Python dependencies
+├── insights/            # Reserved for articles and analysis (currently empty)
+├── docs/                # Our own findings, gotchas, and notes
+└── repos/               # Upstream submodules (pinned)
+    │
+    │   # Core Runner Infra
     ├── runner/
     ├── runner-images/
     ├── actions-runner-controller/
-    ├── checkout/
+    ├── scaleset/
+    │
+    │   # Essential Actions
+    ├── actions--checkout/
+    ├── seemethere--checkout/
     ├── cache/
     ├── upload-artifact/
     ├── download-artifact/
+    ├── upload-artifact-s3/
+    ├── download-artifact-s3/
+    ├── retry/
+    │
+    │   # Language Setup
     ├── setup-node/
     ├── setup-python/
     ├── setup-go/
     ├── setup-java/
+    │
+    │   # Workflow Utilities
     ├── github-script/
     ├── create-release/
     ├── labeler/
+    │
+    │   # Action Development
     ├── toolkit/
     ├── starter-workflows/
     ├── typescript-action/
     ├── javascript-action/
+    │
+    │   # Cloud Providers
     ├── configure-aws-credentials/
+    ├── amazon-ecr-login/
     ├── login/
     ├── auth/
+    │
+    │   # Container Registry
     ├── harbor/
     ├── harbor-helm/
     ├── harbor-cli/
+    │
+    │   # Kubernetes Infra
     ├── karpenter/
     ├── kustomize/
+    ├── helm/
+    ├── dns/
+    │
+    │   # GPU Support
     ├── k8s-device-plugin/
-    ├── go-containerregistry/
-    ├── buildkit/
-    ├── setup-buildx-action/
-    ├── build-push-action/
-    ├── login-action/
-    ├── uv/
-    ├── ccache/
-    ├── git/
-    ├── docs/
+    ├── dcgm-exporter/
+    │
+    │   # Monitoring & Observability
     ├── helm-charts/
     ├── alloy/
-    └── dcgm-exporter/
+    ├── node_exporter/
+    ├── kube-state-metrics/
+    ├── prometheus-operator/
+    │
+    │   # Container Tooling
+    ├── go-containerregistry/
+    │
+    │   # Container Build
+    ├── buildkit/
+    ├── setup-buildx-action/
+    ├── setup-qemu-action/
+    ├── build-push-action/
+    ├── login-action/
+    │
+    │   # Build & Dev Tools
+    ├── uv/
+    ├── setup-uv/
+    ├── ccache/
+    │
+    │   # CI Third-Party Actions
+    ├── claude-code-action/
+    ├── action-gh-release/
+    ├── request-action/
+    ├── scorecard-action/
+    ├── auto-request-review/
+    ├── msvc-dev-cmd/
+    ├── nitpicker/
+    ├── codeql-action/
+    │
+    │   # Version Control
+    ├── git/
+    ├── ghstack/
+    │
+    │   # Documentation
+    ├── docs/
+    │
+    │   # Web & Package Servers
+    ├── nginx/
+    └── pypiserver/
 ```
 
 ## Repository Summaries
@@ -66,7 +128,7 @@ actions-knowledge-base/
 ### Core Runner Infrastructure
 
 #### `repos/runner/` - GitHub Actions Runner
-**Language:** C# | **Version:** v2.321.0
+**Language:** C#
 
 The self-hosted runner application that executes GitHub Actions workflow jobs on your own infrastructure. Provides maximum control over the execution environment.
 
@@ -85,7 +147,7 @@ The self-hosted runner application that executes GitHub Actions workflow jobs on
 ---
 
 #### `repos/runner-images/` - GitHub-hosted Runner Images
-**Language:** Packer/PowerShell/Bash | **Tracking:** Latest
+**Language:** Packer/PowerShell/Bash
 
 Virtual machine images used by GitHub-hosted runners. Contains the complete toolchain and software pre-installed on ubuntu-latest, windows-latest, and macos-latest.
 
@@ -99,7 +161,7 @@ Virtual machine images used by GitHub-hosted runners. Contains the complete tool
 ---
 
 #### `repos/actions-runner-controller/` - Actions Runner Controller (ARC)
-**Language:** Go | **Version:** v0.9.3
+**Language:** Go
 
 Kubernetes operator that orchestrates self-hosted runners. Enables autoscaling runners based on workflow demand within Kubernetes clusters.
 
@@ -123,8 +185,8 @@ helm install runner-set \
 
 ### Essential Actions
 
-#### `repos/checkout/` - actions/checkout
-**Language:** TypeScript | **Version:** v4.2.2
+#### `repos/actions--checkout/` - actions/checkout
+**Language:** TypeScript
 
 Checks out your repository code so workflows can access it. The most commonly used action.
 
@@ -144,13 +206,14 @@ Checks out your repository code so workflows can access it. The most commonly us
 ---
 
 #### `repos/cache/` - actions/cache
-**Language:** TypeScript | **Version:** v4.1.2
+**Language:** TypeScript
 
 Caches dependencies and build outputs to speed up workflows. Supports cross-workflow and cross-branch cache sharing.
 
 **Key paths:**
 - `src/` - Core caching logic
-- `src/cache.ts` - Main cache implementation
+- `src/restoreImpl.ts` - Cache restore entry point
+- `src/saveImpl.ts` - Cache save entry point
 
 **Usage:**
 ```yaml
@@ -164,7 +227,7 @@ Caches dependencies and build outputs to speed up workflows. Supports cross-work
 ---
 
 #### `repos/upload-artifact/` - actions/upload-artifact
-**Language:** TypeScript | **Version:** v4.4.3
+**Language:** TypeScript
 
 Uploads artifacts from your workflow run for sharing between jobs or downloading after completion.
 
@@ -180,7 +243,7 @@ Uploads artifacts from your workflow run for sharing between jobs or downloading
 ---
 
 #### `repos/download-artifact/` - actions/download-artifact
-**Language:** TypeScript | **Version:** v4.1.8
+**Language:** TypeScript
 
 Downloads artifacts uploaded by `upload-artifact` in the same workflow run.
 
@@ -197,7 +260,7 @@ Downloads artifacts uploaded by `upload-artifact` in the same workflow run.
 ### Language Setup Actions
 
 #### `repos/setup-node/` - actions/setup-node
-**Language:** TypeScript | **Version:** v4.1.0
+**Language:** TypeScript
 
 Sets up a Node.js environment with specified version and optional caching.
 
@@ -212,7 +275,7 @@ Sets up a Node.js environment with specified version and optional caching.
 ---
 
 #### `repos/setup-python/` - actions/setup-python
-**Language:** TypeScript | **Version:** v5.3.0
+**Language:** TypeScript
 
 Sets up a Python environment with specified version, pip caching, and optional poetry/pipenv support.
 
@@ -227,7 +290,7 @@ Sets up a Python environment with specified version, pip caching, and optional p
 ---
 
 #### `repos/setup-go/` - actions/setup-go
-**Language:** TypeScript | **Version:** v5.1.0
+**Language:** TypeScript
 
 Sets up a Go environment with specified version and module caching.
 
@@ -242,7 +305,7 @@ Sets up a Go environment with specified version and module caching.
 ---
 
 #### `repos/setup-java/` - actions/setup-java
-**Language:** TypeScript | **Version:** v4.5.0
+**Language:** TypeScript
 
 Sets up a Java/JDK environment with support for multiple distributions (Temurin, Zulu, Corretto, etc.).
 
@@ -260,7 +323,7 @@ Sets up a Java/JDK environment with support for multiple distributions (Temurin,
 ### Workflow Utilities
 
 #### `repos/github-script/` - actions/github-script
-**Language:** TypeScript | **Version:** v7.0.1
+**Language:** TypeScript
 
 Run JavaScript/TypeScript scripts with access to the GitHub API via Octokit. Enables complex automation without creating a custom action.
 
@@ -280,7 +343,7 @@ Run JavaScript/TypeScript scripts with access to the GitHub API via Octokit. Ena
 ---
 
 #### `repos/create-release/` - actions/create-release
-**Language:** TypeScript | **Version:** v1.1.4
+**Language:** TypeScript
 
 Creates GitHub releases with release notes and assets.
 
@@ -299,7 +362,7 @@ Creates GitHub releases with release notes and assets.
 ---
 
 #### `repos/labeler/` - actions/labeler
-**Language:** TypeScript | **Version:** v5.0.0
+**Language:** TypeScript
 
 Automatically labels pull requests based on file paths changed.
 
@@ -319,7 +382,7 @@ frontend:
 ### Action Development
 
 #### `repos/toolkit/` - actions/toolkit
-**Language:** TypeScript | **Tracking:** Latest
+**Language:** TypeScript
 
 The official SDK for building GitHub Actions. Contains packages for core functionality, GitHub API access, artifact handling, caching, and more.
 
@@ -338,7 +401,7 @@ npm install @actions/core @actions/github
 ---
 
 #### `repos/starter-workflows/` - GitHub Starter Workflows
-**Language:** YAML | **Tracking:** Latest
+**Language:** YAML
 
 Template workflows shown in the GitHub Actions "New workflow" UI. Great reference for language-specific CI/CD patterns.
 
@@ -351,7 +414,7 @@ Template workflows shown in the GitHub Actions "New workflow" UI. Great referenc
 ---
 
 #### `repos/typescript-action/` - TypeScript Action Template
-**Language:** TypeScript | **Tracking:** Latest
+**Language:** TypeScript
 
 Official template for creating GitHub Actions with TypeScript. Includes build configuration, testing setup, and release workflow.
 
@@ -363,7 +426,7 @@ Official template for creating GitHub Actions with TypeScript. Includes build co
 ---
 
 #### `repos/javascript-action/` - JavaScript Action Template
-**Language:** JavaScript | **Tracking:** Latest
+**Language:** JavaScript
 
 Official template for creating GitHub Actions with JavaScript. Simpler setup than TypeScript for quick prototyping.
 
@@ -372,7 +435,7 @@ Official template for creating GitHub Actions with JavaScript. Simpler setup tha
 ### Cloud Provider Actions
 
 #### `repos/configure-aws-credentials/` - AWS Credentials
-**Language:** TypeScript | **Version:** v4.0.2 | **Org:** aws-actions
+**Language:** TypeScript | **Org:** aws-actions
 
 Configures AWS credentials for use with AWS CLI and SDKs. Supports OIDC federation for keyless authentication.
 
@@ -396,7 +459,7 @@ Configures AWS credentials for use with AWS CLI and SDKs. Supports OIDC federati
 ---
 
 #### `repos/login/` - Azure Login
-**Language:** TypeScript | **Version:** v2.2.0 | **Org:** azure
+**Language:** TypeScript | **Org:** azure
 
 Authenticates with Azure using service principal, OIDC, or managed identity.
 
@@ -412,7 +475,7 @@ Authenticates with Azure using service principal, OIDC, or managed identity.
 ---
 
 #### `repos/auth/` - Google Cloud Auth
-**Language:** TypeScript | **Version:** v2.1.6 | **Org:** google-github-actions
+**Language:** TypeScript | **Org:** google-github-actions
 
 Authenticates with Google Cloud using Workload Identity Federation (OIDC) or service account keys.
 
@@ -429,7 +492,7 @@ Authenticates with Google Cloud using Workload Identity Federation (OIDC) or ser
 ### Container Registry
 
 #### `repos/harbor/` - Harbor Container Registry
-**Language:** Go/TypeScript | **Version:** v2.14.2 | **Org:** goharbor
+**Language:** Go/TypeScript | **Org:** goharbor
 
 An open-source trusted cloud native registry project (CNCF graduated) that stores, signs, and scans container content. Extends Docker Distribution with security, identity, and management features.
 
@@ -461,7 +524,7 @@ cp harbor.yml.tmpl harbor.yml
 ---
 
 #### `repos/harbor-helm/` - Harbor Helm Chart
-**Language:** YAML/Mustache | **Version:** v1.18.2 | **Org:** goharbor
+**Language:** YAML/Mustache | **Org:** goharbor
 
 Helm chart for deploying Harbor into Kubernetes clusters. Supports ingress, TLS, persistent storage, and multiple storage backends (S3, GCS, Azure, filesystem).
 
@@ -490,7 +553,7 @@ helm install harbor harbor/harbor \
 ---
 
 #### `repos/harbor-cli/` - Harbor CLI
-**Language:** Go | **Version:** v0.0.17 | **Org:** goharbor
+**Language:** Go | **Org:** goharbor
 
 Official command-line interface for Harbor registries. A streamlined, user-friendly alternative to the web UI for daily operations, scripting, and automation.
 
@@ -513,29 +576,29 @@ brew install harbor-cli
 ### Documentation
 
 #### `repos/docs/` - GitHub Documentation
-**Language:** Markdown/MDX | **Tracking:** Latest | **Org:** github
+**Language:** Markdown/MDX | **Org:** github
 
 The complete source for docs.github.com. Contains comprehensive documentation for GitHub Actions and all GitHub features.
 
 **Key paths:**
 - `content/actions/` - GitHub Actions documentation
-- `content/actions/writing-workflows/` - Workflow authoring guides
-- `content/actions/creating-actions/` - Action development guides
-- `content/actions/hosting-your-own-runners/` - Self-hosted runner guides
+- `content/actions/how-tos/write-workflows/` - Workflow authoring guides
+- `content/actions/how-tos/create-and-publish-actions/` - Action development guides
+- `content/actions/how-tos/manage-runners/` - Self-hosted runner guides
+- `content/actions/concepts/workflows-and-actions/` - Core concepts (workflows, contexts, expressions)
 
 ---
 
 ### Kubernetes Infrastructure
 
 #### `repos/karpenter/` - Karpenter Node Autoscaler
-**Language:** Go | **Version:** v1.1.3 | **Org:** kubernetes-sigs
+**Language:** Go | **Org:** kubernetes-sigs
 
-Kubernetes node autoscaler that provisions just-in-time compute resources for Kubernetes clusters. Used in ciforge to dynamically provision nodes for GitHub Actions runner pods based on workflow demand.
+Kubernetes node autoscaler that provisions just-in-time compute resources for Kubernetes clusters based on pending pod demand.
 
 **Key paths:**
-- `charts/karpenter/` - Helm chart for deploying Karpenter
 - `pkg/apis/` - API types including NodePool, EC2NodeClass
-- `pkg/providers/` - Cloud provider implementations
+- `pkg/cloudprovider/` - Cloud provider interface and implementations
 - `designs/` - Design documents and proposals
 
 **Key concepts:**
@@ -546,23 +609,23 @@ Kubernetes node autoscaler that provisions just-in-time compute resources for Ku
 ---
 
 #### `repos/kustomize/` - Kustomize
-**Language:** Go | **Tracking:** Latest | **Org:** kubernetes-sigs
+**Language:** Go | **Org:** kubernetes-sigs
 
 Kubernetes-native configuration management tool. Customizes Kubernetes manifests without templates using overlays, patches, and transformers. Built into `kubectl` as `kubectl apply -k`.
 
 **Key paths:**
 - `api/types/` - Kustomization API types
 - `examples/` - Example kustomizations
-- `docs/` - Documentation and guides
+- `site/content/` - Documentation and guides
 
 ---
 
 ### GPU Support
 
 #### `repos/k8s-device-plugin/` - NVIDIA Kubernetes Device Plugin
-**Language:** Go | **Version:** v0.17.1 | **Org:** NVIDIA
+**Language:** Go | **Org:** NVIDIA
 
-Kubernetes device plugin that exposes NVIDIA GPUs to containerized workloads. Deployed as a DaemonSet on GPU nodes in ciforge to enable GPU-accelerated CI runner jobs.
+Kubernetes device plugin that exposes NVIDIA GPUs to containerized workloads. Typically deployed as a DaemonSet on GPU nodes so Kubernetes can schedule GPU-accelerated workloads.
 
 **Key paths:**
 - `deployments/helm/nvidia-device-plugin/` - Helm chart
@@ -575,13 +638,13 @@ Kubernetes device plugin that exposes NVIDIA GPUs to containerized workloads. De
 - Health checking and topology awareness
 
 #### `repos/dcgm-exporter/` - NVIDIA DCGM Exporter
-**Language:** Go | **Version:** 4.5.2-4.8.1 | **Org:** NVIDIA
+**Language:** Go | **Org:** NVIDIA
 
-Prometheus exporter for NVIDIA GPU metrics based on DCGM (Data Center GPU Manager). Deployed as a DaemonSet on GPU nodes in OSDC to expose GPU utilization, memory, temperature, and error metrics to Prometheus.
+Prometheus exporter for NVIDIA GPU metrics based on DCGM (Data Center GPU Manager). Typically deployed as a DaemonSet on GPU nodes to expose GPU utilization, memory, temperature, and error metrics to Prometheus.
 
 **Key paths:**
 - `cmd/dcgm-exporter/` - Main binary
-- `pkg/dcgm/` - DCGM library bindings
+- `internal/pkg/dcgmprovider/` - DCGM library bindings
 - `etc/default-counters.csv` - Default metrics to export
 - `etc/dcp-metrics-included.csv` - Profiling metrics
 - `deployment/` - Kubernetes deployment manifests
@@ -597,9 +660,9 @@ Prometheus exporter for NVIDIA GPU metrics based on DCGM (Data Center GPU Manage
 ### Container Tooling
 
 #### `repos/go-containerregistry/` - go-containerregistry (crane)
-**Language:** Go | **Tracking:** Latest | **Org:** google
+**Language:** Go | **Org:** google
 
-Go library and CLI tools for interacting with container registries. The `crane` CLI is used in ciforge's image mirroring pipeline (`scripts/mirror-images.sh`) to copy upstream images to ECR.
+Go library and CLI tools for interacting with container registries. The `crane` CLI copies images between registries and inspects image metadata without a local Docker daemon.
 
 **Key paths:**
 - `cmd/crane/` - crane CLI source
@@ -618,9 +681,9 @@ Go library and CLI tools for interacting with container registries. The `crane` 
 ### Docker Actions (CI/CD)
 
 #### `repos/setup-buildx-action/` - docker/setup-buildx-action
-**Language:** TypeScript | **Version:** v3.12.0 | **Org:** docker
+**Language:** TypeScript | **Org:** docker
 
-Sets up Docker Buildx in GitHub Actions workflows. Supports local, remote, docker-container, and kubernetes drivers. Used in ciforge to connect to the in-cluster BuildKit daemon via `driver: remote`.
+Sets up Docker Buildx in GitHub Actions workflows. Supports local, remote, docker-container, and kubernetes drivers.
 
 **Key inputs:**
 - `driver` — Builder driver: `docker-container` (default), `remote`, `kubernetes`, `docker`
@@ -644,7 +707,7 @@ Sets up Docker Buildx in GitHub Actions workflows. Supports local, remote, docke
 ---
 
 #### `repos/build-push-action/` - docker/build-push-action
-**Language:** TypeScript | **Version:** v6.19.2 | **Org:** docker
+**Language:** TypeScript | **Org:** docker
 
 Builds and pushes container images using Buildx. Works transparently with any builder configured by `setup-buildx-action`, including remote BuildKit daemons. Registry auth is forwarded via the buildx session.
 
@@ -673,7 +736,7 @@ Builds and pushes container images using Buildx. Works transparently with any bu
 ---
 
 #### `repos/login-action/` - docker/login-action
-**Language:** TypeScript | **Version:** v3.7.0 | **Org:** docker
+**Language:** TypeScript | **Org:** docker
 
 Authenticates to container registries by writing credentials to `~/.docker/config.json`. With remote BuildKit, credentials are forwarded to the daemon via the buildx session — they never need to exist on the daemon itself.
 
@@ -702,7 +765,7 @@ Authenticates to container registries by writing credentials to `~/.docker/confi
 ### Container Build
 
 #### `repos/buildkit/` - BuildKit
-**Language:** Go | **Version:** v0.27.1 | **Org:** moby
+**Language:** Go | **Org:** moby
 
 Concurrent, cache-efficient, and Dockerfile-agnostic builder toolkit. BuildKit is the next-generation container image builder used as the backend for `docker build` (via BuildX). It supports advanced features like multi-stage builds, build secrets, SSH forwarding, cache mounts, and multi-platform builds.
 
@@ -745,7 +808,7 @@ docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest --push 
 ### Version Control
 
 #### `repos/git/` - Git
-**Language:** C | **Tracking:** Latest | **Org:** git
+**Language:** C | **Org:** git
 
 The distributed version control system. The canonical source for understanding Git internals, transport protocols, and plumbing commands. Essential reference for debugging Git behavior in CI workflows, understanding shallow clones, sparse checkouts, and submodule operations used by actions like `actions/checkout`.
 
@@ -768,9 +831,9 @@ The distributed version control system. The canonical source for understanding G
 ### Build & Dev Tools
 
 #### `repos/uv/` - uv (Python Package Manager)
-**Language:** Rust | **Tracking:** Latest | **Org:** astral-sh
+**Language:** Rust | **Org:** astral-sh
 
-Extremely fast Python package and project manager written in Rust. Used in ciforge as the exclusive Python package manager (replaces pip/conda/poetry).
+Extremely fast Python package and project manager written in Rust. Aims to replace pip, pip-tools, pipx, poetry, pyenv, and virtualenv with a single tool.
 
 **Key paths:**
 - `docs/` - Documentation and guides
@@ -785,9 +848,9 @@ Extremely fast Python package and project manager written in Rust. Used in cifor
 ---
 
 #### `repos/ccache/` - ccache (Compiler Cache)
-**Language:** C++ | **Tracking:** Latest | **Org:** ccache
+**Language:** C++ | **Org:** ccache
 
-Compiler cache that speeds up recompilation by caching previous compilations. Installed on runner nodes via the EKS bootstrap script to accelerate C/C++ build jobs.
+Compiler cache that speeds up recompilation by caching the results of previous compilations and reusing them when the same compilation is repeated.
 
 **Key paths:**
 - `doc/` - Documentation (configuration, usage)
@@ -804,9 +867,9 @@ Compiler cache that speeds up recompilation by caching previous compilations. In
 ### Monitoring & Observability
 
 #### `repos/helm-charts/` - Prometheus Community Helm Charts
-**Language:** Helm/YAML | **Tracking:** Latest | **Org:** prometheus-community
+**Language:** Helm/YAML | **Org:** prometheus-community
 
-Monorepo containing all Prometheus community Helm charts. The key chart for OSDC is **kube-prometheus-stack**, which bundles Prometheus, Grafana, AlertManager, Prometheus Operator, node-exporter, and kube-state-metrics into a single install. OSDC deploys this as part of the `monitoring` module.
+Monorepo containing all Prometheus community Helm charts. The flagship chart is **kube-prometheus-stack**, which bundles Prometheus, Grafana, AlertManager, Prometheus Operator, node-exporter, and kube-state-metrics into a single install.
 
 **Key paths:**
 - `charts/kube-prometheus-stack/values.yaml` - Primary values file (5500+ lines, the main reference for configuration)
@@ -818,14 +881,10 @@ Monorepo containing all Prometheus community Helm charts. The key chart for OSDC
 - `charts/prometheus-node-exporter/` - Standalone node-exporter chart
 - `charts/prometheus-operator-crds/` - Standalone CRDs chart (can be installed independently)
 
-**Key gotchas (OSDC-specific):**
-- The admission webhook pre-install job needs tolerations on tainted clusters (see `docs/monitoring/kube-prometheus-stack-admission-webhook-taints.md`)
-- ServiceMonitor/PodMonitor CRDs are installed by the chart — resources referencing these CRDs must be applied after Helm install (see `docs/monitoring/kube-prometheus-stack-crd-ordering.md`)
-
 #### `repos/alloy/` - Grafana Alloy
-**Language:** Go | **Version:** v1.9.2 | **Org:** grafana
+**Language:** Go | **Org:** grafana
 
-Grafana's OpenTelemetry Collector distribution for collecting, transforming, and shipping telemetry data. In OSDC, Alloy is optionally deployed alongside Prometheus to push metrics to Grafana Cloud via `prometheus.remote_write`. It independently discovers ServiceMonitor/PodMonitor CRDs.
+Grafana's OpenTelemetry Collector distribution for collecting, transforming, and shipping telemetry data. It scrapes Prometheus-compatible targets, can push metrics to remote endpoints via `prometheus.remote_write`, and can discover ServiceMonitor/PodMonitor CRDs.
 
 **Key paths:**
 - `operations/helm/charts/alloy/` - Helm chart (values.yaml, templates/)
@@ -840,11 +899,6 @@ Grafana's OpenTelemetry Collector distribution for collecting, transforming, and
 - Push to remote endpoints via `prometheus.remote_write`
 - Clustering for HA (hash ring distributes scrape targets across replicas)
 - OpenTelemetry protocol support (metrics, logs, traces)
-
-**Key gotchas (OSDC-specific):**
-- Config uses HCL-like syntax ("Alloy syntax"), not YAML — see `docs/monitoring/grafana-alloy-setup.md`
-- Clustering must be enabled per component to avoid duplicate metrics across replicas
-- Deployment is secret-gated: only installed when `grafana-cloud-credentials` exists
 
 ---
 
@@ -902,37 +956,61 @@ Remove it from `ALLOWED_REPOS` in `sync.py` and run `uv run sync.py`. The submod
 | Understand runner architecture | `runner` | `src/Runner.Worker/` |
 | Check pre-installed software | `runner-images` | `images/ubuntu/scripts/` |
 | Set up K8s autoscaling | `actions-runner-controller` | `charts/gha-runner-scale-set/` |
-| Configure checkout options | `checkout` | `src/git-source-provider.ts` |
-| Implement caching strategy | `cache` | `src/cache.ts` |
+| Understand the scale-set listener | `scaleset` | `listener/`, `client.go` |
+| Configure checkout options | `actions--checkout` | `src/git-source-provider.ts` |
+| Compare the checkout fork | `seemethere--checkout` | `src/git-source-provider.ts` |
+| Implement caching strategy | `cache` | `src/restoreImpl.ts`, `src/saveImpl.ts` |
+| Retry a flaky step | `retry` | `action.yml` |
+| Upload artifacts to S3 | `upload-artifact-s3` | `action.yml` |
+| Download artifacts from S3 | `download-artifact-s3` | `action.yml` |
 | Build custom action | `toolkit` | `packages/core/` |
 | Find workflow templates | `starter-workflows` | `ci/` |
 | Configure AWS OIDC | `configure-aws-credentials` | `src/` |
+| Log in to Amazon ECR | `amazon-ecr-login` | `action.yml` |
 | Configure Azure OIDC | `login` | `src/` |
 | Configure GCP OIDC | `auth` | `src/` |
-| Learn workflow syntax | `docs` | `content/actions/writing-workflows/` |
-| Understand contexts | `docs` | `content/actions/writing-workflows/choosing-what-your-workflow-does/` |
+| Learn workflow syntax | `docs` | `content/actions/how-tos/write-workflows/` |
+| Understand contexts | `docs` | `content/actions/concepts/workflows-and-actions/contexts.md` |
 | Deploy container registry | `harbor` | `make/`, `docs/` |
 | Deploy Harbor on K8s | `harbor-helm` | `values.yaml`, `templates/` |
 | Configure Harbor via CLI | `harbor-cli` | `cmd/harbor/`, `examples/config/` |
 | Harbor API reference | `harbor` | `api/v2.0/` |
-| Configure Karpenter NodePools | `karpenter` | `charts/karpenter/`, `pkg/apis/` |
-| Expose GPUs to K8s pods | `k8s-device-plugin` | `deployments/helm/nvidia-device-plugin/` |
-| Mirror container images | `go-containerregistry` | `cmd/crane/` |
+| Configure Karpenter NodePools | `karpenter` | `pkg/apis/` |
+| Understand Helm internals | `helm` | `cmd/helm/`, `pkg/` |
 | Customize K8s manifests | `kustomize` | `api/types/`, `examples/` |
+| Understand Kubernetes DNS | `dns` | `cmd/`, `pkg/` |
+| Expose GPUs to K8s pods | `k8s-device-plugin` | `deployments/helm/nvidia-device-plugin/` |
+| Copy images between registries | `go-containerregistry` | `cmd/crane/` |
 | Build container images | `buildkit` | `cmd/buildkitd/`, `frontend/dockerfile/` |
 | Set up Buildx in CI | `setup-buildx-action` | `src/`, `action.yml` |
+| Set up QEMU for multi-arch | `setup-qemu-action` | `action.yml` |
 | Build & push images in CI | `build-push-action` | `src/`, `action.yml` |
 | Registry auth in CI | `login-action` | `src/`, `action.yml` |
 | Manage Python packages | `uv` | `docs/` |
+| Set up uv in CI | `setup-uv` | `action.yml` |
 | Speed up C/C++ builds | `ccache` | `doc/` |
+| Set up MSVC dev environment | `msvc-dev-cmd` | `action.yml` |
 | Debug Git internals/protocols | `git` | `Documentation/`, `builtin/` |
 | Understand shallow/sparse clone | `git` | `builtin/clone.c`, `Documentation/` |
+| Work with stacked PRs (ghstack) | `ghstack` | `src/` |
 | Configure kube-prometheus-stack | `helm-charts` | `charts/kube-prometheus-stack/values.yaml` |
 | Upgrade kube-prometheus-stack | `helm-charts` | `charts/kube-prometheus-stack/UPGRADE.md` |
 | Understand Prometheus Operator CRDs | `helm-charts` | `charts/kube-prometheus-stack/charts/crds/` |
+| Read Prometheus Operator source | `prometheus-operator` | `pkg/apis/`, `Documentation/` |
 | Configure node-exporter | `helm-charts` | `charts/prometheus-node-exporter/values.yaml` |
+| Configure node_exporter collectors | `node_exporter` | `collector/` |
 | Configure kube-state-metrics | `helm-charts` | `charts/kube-state-metrics/values.yaml` |
+| Understand kube-state-metrics | `kube-state-metrics` | `docs/`, `internal/store/` |
 | Configure Grafana Alloy | `alloy` | `operations/helm/charts/alloy/values.yaml`, `docs/sources/reference/` |
 | Understand Alloy config syntax | `alloy` | `syntax/`, `example-config.alloy` |
 | Configure DCGM GPU metrics | `dcgm-exporter` | `etc/default-counters.csv`, `deployment/` |
-| Expose GPU metrics to Prometheus | `dcgm-exporter` | `cmd/dcgm-exporter/`, `pkg/dcgm/` |
+| Expose GPU metrics to Prometheus | `dcgm-exporter` | `cmd/dcgm-exporter/`, `internal/pkg/dcgmprovider/` |
+| Run Claude Code in CI | `claude-code-action` | `action.yml` |
+| Create GitHub releases (softprops) | `action-gh-release` | `action.yml` |
+| Call the GitHub API from a workflow | `request-action` | `action.yml` |
+| Run OSSF Scorecard checks | `scorecard-action` | `action.yaml` |
+| Run CodeQL security scanning | `codeql-action` | `init/`, `analyze/` |
+| Auto-request PR reviewers | `auto-request-review` | `action.yml` |
+| Enforce file-path PR policies | `nitpicker` | `action.yml` |
+| Understand nginx internals/config | `nginx` | `src/`, `conf/` |
+| Run a private PyPI server | `pypiserver` | `pypiserver/`, `docs/` |
